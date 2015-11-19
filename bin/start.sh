@@ -68,3 +68,6 @@ fi
 
 $SPARK_HOME/bin/spark-submit --class com.inadco.cassandra.spark.jdbc.InadcoCSJServer --master local[2] $INADCO_CSJB_HOME/inadco-csjb-assembly-1.0.jar >>$INADCO_CSJB_HOME/var/log/log.out \
 2>>$INADCO_CSJB_HOME/var/log/log.err & echo $! > $csjb_pid
+
+
+#[root@bd9 spark-1.4.1-bin-hadoop2.6]# bin/spark-submit --class com.inadco.cassandra.spark.jdbc.InadcoCSJServer --master spark://bd9.bigdata:7077 $INADCO_CSJ_HOME/inadco-csjb-assembly-1.0.jar

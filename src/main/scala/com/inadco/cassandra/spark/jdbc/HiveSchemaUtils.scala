@@ -1,5 +1,6 @@
 package com.inadco.cassandra.spark.jdbc
 
+import org.apache.spark.Logging
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 import com.datastax.spark.connector.types.UUIDType
@@ -7,16 +8,16 @@ import com.datastax.spark.connector.types.UUIDType
  * Util class to deal with hive schemas
  * @author hduong
  */
-object HiveSchemaUtils {
+object HiveSchemaUtils extends Logging {
 	/**
 	 * Map a column in Cassandra to a column to be defined in schema RDD
 	 * Currently only support basic/primitive data types.
 	 */
 	def createStructField (colMeta: (String, String)) : StructField = {
 		var dataType: DataType = StringType
-		val colName = colMeta._1;
+		val colName = colMeta._1
 		
-		var cassandraDataType = colMeta._2
+		val cassandraDataType = colMeta._2
 		//reference this link for all the data types in Cassandra
 		//http://grepcode.com/file/repo1.maven.org/maven2/org.apache.cassandra/cassandra-all/1.1.0/org/apache/cassandra/db/marshal/
 		cassandraDataType match {
@@ -38,11 +39,16 @@ object HiveSchemaUtils {
 			case "org.apache.cassandra.db.marshal.TimestampType" => dataType = TimestampType
 			
 			case "org.apache.cassandra.db.marshal.ReversedType(org.apache.cassandra.db.marshal.TimestampType)" => dataType = TimestampType
+
+      case "org.apache.cassandra.db.marshal.ReversedType(org.apache.cassandra.db.marshal.IntegerType)" => dataType = IntegerType
 			
-			
-			case _ => throw new RuntimeException("Column " + colName + " has unsupported data type " + cassandraDataType)
+			case _ => {
+//        throw new RuntimeException("Column " + colName + " has unsupported data type " + cassandraDataType)
+        dataType = BinaryType
+        logError("Column " + colName + " has unsupported data type " + cassandraDataType)
+      }
 		}
-		StructField(colMeta._1, dataType, true)
+    StructField(colMeta._1, dataType, true)
 	}
 	
 	/**

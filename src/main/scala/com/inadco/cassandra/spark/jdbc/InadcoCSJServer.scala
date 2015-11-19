@@ -65,10 +65,11 @@ class InadcoCSJServer extends Logging{
 		
 		//init new spark context
 		val sparkConf = new SparkConf()
+    sparkConf.set("spark.scheduler.mode", "FAIR")
 		sparkConf.set("spark.cores.max", appConfig.getString("spark.cores.max"))
 		sparkConf.set("spark.cassandra.connection.host",appConfig.getString("spark.cassandra.connection.host"))
-    sparkConf.set("spark.cassandra.auth.username", appConfig.getString("spark.cassandra.auth.username"))
-		sparkConf.set("spark.cassandra.auth.password", appConfig.getString("spark.cassandra.auth.password"))
+//    sparkConf.set("spark.cassandra.auth.username", appConfig.getString("spark.cassandra.auth.username"))
+//		sparkConf.set("spark.cassandra.auth.password", appConfig.getString("spark.cassandra.auth.password"))
 		sparkConf.set("spark.executor.memory", appConfig.getString("spark.executor.memory"))
 		
 		
@@ -90,15 +91,15 @@ class InadcoCSJServer extends Logging{
         
     //hive stuff
 		val hiveContext = new org.apache.spark.sql.hive.HiveContext(sc)
-		HiveThriftServer2.startWithContext(hiveContext)
+    HiveThriftServer2.startWithContext(hiveContext)
 		
 		//register all Cassandra tables		
 		val startDelayMs = new FiniteDuration(0, java.util.concurrent.TimeUnit.MILLISECONDS)
 		val intervalMs = new FiniteDuration(appConfig.getLong("inadco.tableList.refresh.intervalMs"), java.util.concurrent.TimeUnit.MILLISECONDS)
 
-		val cancellable = system.scheduler.schedule(startDelayMs, intervalMs)({
+//		val cancellable = system.scheduler.schedule(startDelayMs, intervalMs)({
 			registerCassandraTables(sc, sparkConf, hiveContext)    	
-		})		
+//		})
 		
 		logInfo("InadcoCSJServer started successfully")
 	}
@@ -107,7 +108,7 @@ class InadcoCSJServer extends Logging{
 	}
 	
 	def registerCassandraTables(sc: SparkContext, sparkConf: SparkConf, hiveContext: HiveContext){
-	  	var cassMetaDataDAO = new CassandraMetaDataDAO(sparkConf)
+	  	val cassMetaDataDAO = new CassandraMetaDataDAO(sparkConf)
 	  	val keyspaceList = cassMetaDataDAO.getKeySpaceList()
 	  	keyspaceList.foreach{ keyspace =>  		  	
 	  		cassMetaDataDAO.getTableList(keyspace).foreach(tableName => registerCassandraTable(keyspace, tableName, cassMetaDataDAO, sc, hiveContext))	
@@ -117,31 +118,36 @@ class InadcoCSJServer extends Logging{
 	def registerCassandraTable(keyspace: String, tableName: String, cassMetaDataDAO: CassandraMetaDataDAO, sc: SparkContext, hiveContext: HiveContext){
 	  	//format full table name with keyspace_ prefix
 	  	val hiveTableName = keyspace + "_" + tableName
+      logInfo("Try to register hive table " + hiveTableName +" ...")
 	  	try {
 	  		val rdd = sc.cassandraTable(keyspace, tableName)
 	  		val colList = cassMetaDataDAO.getTableColumns(keyspace, tableName).toArray
 	  		val hiveSchema = StructType(colList.map(colMeta => HiveSchemaUtils.createStructField(colMeta)))
-	  		
+
 	  		val existingHiveSchema = hiveTables.get(hiveTableName)
-	  		if(!HiveSchemaUtils.isSameSchema(existingHiveSchema, Some(hiveSchema))){	  			
+//	  		if(!HiveSchemaUtils.isSameSchema(existingHiveSchema, Some(hiveSchema))){
 		  		hiveTables.put(hiveTableName, hiveSchema)
-//		  		logInfo("Created hive schema " + hiveSchema.treeString)
 		  		logInfo("Created hive schema " + hiveSchema.toString)
 
 		  		//broad cast column list to workers
 		  		val cassRowUtils = sc.broadcast(new CassandraRowUtils())
 		  		val broadCastedColList= sc.broadcast(colList)
-		  		
+
 		  		val rowRDD = rdd.map(
 						row =>org.apache.spark.sql.Row.fromSeq(broadCastedColList.value.map(
-            	colMeta =>cassRowUtils.value.extractCassandraRowValue(row, colMeta))))	  		
-					
-//					val rowSchemaRDD = hiveContext.applySchema(rowRDD, hiveSchema)
-					val rowSchemaRDD = hiveContext.createDataFrame(rowRDD, hiveSchema)
+            	colMeta =>cassRowUtils.value.extractCassandraRowValue(row, colMeta))))
 
-					rowSchemaRDD.registerTempTable(hiveTableName)		
-					logInfo("Registered table " + hiveTableName)	
-	  		}
+					val rowSchemaRDD = hiveContext.createDataFrame(rowRDD, hiveSchema)
+					rowSchemaRDD.registerTempTable(hiveTableName)
+
+//          val rowSchemaRDD = hiveContext.read
+//            .format("org.apache.spark.sql.cassandra")
+//            .options(Map( "table" -> tableName, "keyspace" -> keyspace, "cluster" -> "Test Cluster" ))
+//            .load()
+//          rowSchemaRDD.registerTempTable(hiveTableName)
+
+					logInfo("Registered table " + hiveTableName)
+//	  		}
 	  		
 		} catch {
 			case e: Exception => logError("Failed to register table " + hiveTableName, e)

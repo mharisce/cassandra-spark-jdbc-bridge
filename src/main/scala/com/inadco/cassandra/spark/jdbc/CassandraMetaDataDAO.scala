@@ -32,10 +32,10 @@ class CassandraMetaDataDAO (conf : SparkConf){
 		val keyspaceList = scala.collection.mutable.Set[java.lang.String]()
 		
 		for(x <- 0 until rowsList.size()){
-			var next=rowsList.get(x);
-			//take keyspace excluding: "system", "system_*" 
+			val next=rowsList.get(x);
+			//take keyspace excluding: "system", "system_*", "OpsCenter"
 			val ks = next.getString(SCHEMA)
-			if(ks != "system" && ks.indexOf("system_") != 0){
+			if(ks != "system" && ks.indexOf("system_") != 0 && ks != "OpsCenter"){
 				keyspaceList+=next.getString(SCHEMA)
 			}			
 		}
@@ -51,7 +51,7 @@ class CassandraMetaDataDAO (conf : SparkConf){
 		val tables = scala.collection.mutable.Set[java.lang.String]()
 		
 		for(x <- 0 until rowsList.size()){
-			var next=rowsList.get(x);
+			val next=rowsList.get(x);
 			if(next.getString(SCHEMA)==keyspace){
 				tables+=next.getString(TABLE)
 			}
@@ -68,7 +68,7 @@ class CassandraMetaDataDAO (conf : SparkConf){
 		val columns = collection.mutable.Map[String, String]()
 		var x=0;
 		for(x <- 0 until rowsList.size()){
-			var next=rowsList.get(x);
+			val next=rowsList.get(x);
 			if(next.getString(SCHEMA)==schema && next.getString(TABLE)==table){
 				columns.put(next.getString(COLUMN),next.getString(COLUMN_DATA_TYPE));
 				}

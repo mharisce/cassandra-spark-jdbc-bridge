@@ -35,15 +35,15 @@ class CassandraRowUtils extends Serializable with Logging{
 			case "org.apache.cassandra.db.marshal.BooleanType" => {
 				val v = row.getBooleanOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
 			}
-			case "org.apache.cassandra.db.marshal.BytesType" => return {
+			case "org.apache.cassandra.db.marshal.BytesType" => {
 				val v = row.getByteOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
@@ -51,7 +51,7 @@ class CassandraRowUtils extends Serializable with Logging{
 			case "org.apache.cassandra.db.marshal.CounterColumnType" => {
 				val v = row.getLongOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
@@ -59,7 +59,7 @@ class CassandraRowUtils extends Serializable with Logging{
 			case "org.apache.cassandra.db.marshal.DateType" => {
 				val v = row.getDateOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
@@ -67,7 +67,7 @@ class CassandraRowUtils extends Serializable with Logging{
 			case "org.apache.cassandra.db.marshal.DecimalType" => {
 				val v = row.getDecimalOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
@@ -75,7 +75,7 @@ class CassandraRowUtils extends Serializable with Logging{
 			case "org.apache.cassandra.db.marshal.DoubleType" => {
 				val v = row.getDoubleOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
@@ -83,7 +83,7 @@ class CassandraRowUtils extends Serializable with Logging{
 			case "org.apache.cassandra.db.marshal.LongType" => {
 				val v = row.getLongOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
@@ -91,7 +91,7 @@ class CassandraRowUtils extends Serializable with Logging{
 			case "org.apache.cassandra.db.marshal.FloatType" => {				
 				val v = row.getFloatOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
@@ -99,7 +99,7 @@ class CassandraRowUtils extends Serializable with Logging{
 			case "org.apache.cassandra.db.marshal.Int32Type" => {
 				val v = row.getIntOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
@@ -107,7 +107,7 @@ class CassandraRowUtils extends Serializable with Logging{
 			case "org.apache.cassandra.db.marshal.IntegerType" => {
 				val v = row.getIntOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
@@ -115,15 +115,15 @@ class CassandraRowUtils extends Serializable with Logging{
 			case "org.apache.cassandra.db.marshal.LexicalUUIDType" => {
 				val v = row.getUUIDOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
 			}
-			case "org.apache.cassandra.db.marshal.UTF8Type" => return {
+			case "org.apache.cassandra.db.marshal.UTF8Type" => {
 				val v = row.getStringOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
@@ -132,7 +132,7 @@ class CassandraRowUtils extends Serializable with Logging{
 			case "org.apache.cassandra.db.marshal.UUIDType" => {
 				val v = row.getUUIDOption(colName)
 				if(v.isEmpty){
-					return null;
+					return null
 				}else{
 					return v.get
 				}
@@ -154,7 +154,7 @@ class CassandraRowUtils extends Serializable with Logging{
 	 */
 	def getSqlDate(v: Option[DateTime]): java.sql.Timestamp={
 		if(v.isEmpty){
-			return null;
+			return null
 		}else{			
 			return new java.sql.Timestamp(v.get.getMillis)
 		}		
