@@ -4,6 +4,7 @@ import org.apache.spark.Logging
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.sql._
+import org.apache.spark.sql.types._
 import org.apache.spark.sql.hive.thriftserver.HiveThriftServer2
 import com.datastax.spark.connector._
 import com.typesafe.config.Config
@@ -51,12 +52,12 @@ class InadcoCSJServer extends Logging{
 	def loadConfig()={
 		
 	  //load all the properties files
-		val defaultConf = ConfigFactory.load();
+		val defaultConf = ConfigFactory.load()
 		val overrideFile = new File(System.getenv("INADCO_CSJ_HOME") + "/config/csjb-default.properties")
 		if(overrideFile.exists()){
-			logInfo("Found override properties from: " + overrideFile.toString());
+			logInfo("Found override properties from: " + overrideFile.toString())
 		}
-		ConfigFactory.parseFile(overrideFile).withFallback(defaultConf);		
+		ConfigFactory.parseFile(overrideFile).withFallback(defaultConf)
 	}
 	
 	def start(){
@@ -65,14 +66,14 @@ class InadcoCSJServer extends Logging{
 		//init new spark context
 		val sparkConf = new SparkConf()
 		sparkConf.set("spark.cores.max", appConfig.getString("spark.cores.max"))
-		sparkConf.set("spark.cassandra.connection.host",appConfig.getString("spark.cassandra.connection.host"));
-		sparkConf.set("spark.cassandra.auth.username", appConfig.getString("spark.cassandra.auth.username"));
-		sparkConf.set("spark.cassandra.auth.password", appConfig.getString("spark.cassandra.auth.password"));
-		sparkConf.set("spark.executor.memory", appConfig.getString("spark.executor.memory"));
+		sparkConf.set("spark.cassandra.connection.host",appConfig.getString("spark.cassandra.connection.host"))
+    sparkConf.set("spark.cassandra.auth.username", appConfig.getString("spark.cassandra.auth.username"))
+		sparkConf.set("spark.cassandra.auth.password", appConfig.getString("spark.cassandra.auth.password"))
+		sparkConf.set("spark.executor.memory", appConfig.getString("spark.executor.memory"))
 		
 		
-		sparkConf.setMaster(appConfig.getString("inadco.spark.master"));
-		sparkConf.setAppName(appConfig.getString("inadco.appName"));
+		sparkConf.setMaster(appConfig.getString("inadco.spark.master"))
+		sparkConf.setAppName(appConfig.getString("inadco.appName"))
 		val sc = new SparkContext(sparkConf)
 		
 		//add handler to gracefully shutdown
@@ -106,8 +107,8 @@ class InadcoCSJServer extends Logging{
 	}
 	
 	def registerCassandraTables(sc: SparkContext, sparkConf: SparkConf, hiveContext: HiveContext){
-	  	var cassMetaDataDAO = new CassandraMetaDataDAO(sparkConf);
-	  	val keyspaceList = cassMetaDataDAO.getKeySpaceList();
+	  	var cassMetaDataDAO = new CassandraMetaDataDAO(sparkConf)
+	  	val keyspaceList = cassMetaDataDAO.getKeySpaceList()
 	  	keyspaceList.foreach{ keyspace =>  		  	
 	  		cassMetaDataDAO.getTableList(keyspace).foreach(tableName => registerCassandraTable(keyspace, tableName, cassMetaDataDAO, sc, hiveContext))	
 	  	}	  	
@@ -115,27 +116,29 @@ class InadcoCSJServer extends Logging{
 	
 	def registerCassandraTable(keyspace: String, tableName: String, cassMetaDataDAO: CassandraMetaDataDAO, sc: SparkContext, hiveContext: HiveContext){
 	  	//format full table name with keyspace_ prefix
-	  	val hiveTableName = keyspace + "_" + tableName;
+	  	val hiveTableName = keyspace + "_" + tableName
 	  	try {
 	  		val rdd = sc.cassandraTable(keyspace, tableName)
 	  		val colList = cassMetaDataDAO.getTableColumns(keyspace, tableName).toArray
 	  		val hiveSchema = StructType(colList.map(colMeta => HiveSchemaUtils.createStructField(colMeta)))
 	  		
-	  		val existingHiveSchema = hiveTables.get(hiveTableName);
+	  		val existingHiveSchema = hiveTables.get(hiveTableName)
 	  		if(!HiveSchemaUtils.isSameSchema(existingHiveSchema, Some(hiveSchema))){	  			
-		  		hiveTables.put(hiveTableName, hiveSchema);
-		  		logInfo("Created hive schema " + hiveSchema.treeString)
-		  		
+		  		hiveTables.put(hiveTableName, hiveSchema)
+//		  		logInfo("Created hive schema " + hiveSchema.treeString)
+		  		logInfo("Created hive schema " + hiveSchema.toString)
+
 		  		//broad cast column list to workers
-		  		val cassRowUtils = sc.broadcast(new CassandraRowUtils());
+		  		val cassRowUtils = sc.broadcast(new CassandraRowUtils())
 		  		val broadCastedColList= sc.broadcast(colList)
 		  		
 		  		val rowRDD = rdd.map(
 						row =>org.apache.spark.sql.Row.fromSeq(broadCastedColList.value.map(
             	colMeta =>cassRowUtils.value.extractCassandraRowValue(row, colMeta))))	  		
 					
-					val rowSchemaRDD = hiveContext.applySchema(rowRDD, hiveSchema)
-				
+//					val rowSchemaRDD = hiveContext.applySchema(rowRDD, hiveSchema)
+					val rowSchemaRDD = hiveContext.createDataFrame(rowRDD, hiveSchema)
+
 					rowSchemaRDD.registerTempTable(hiveTableName)		
 					logInfo("Registered table " + hiveTableName)	
 	  		}

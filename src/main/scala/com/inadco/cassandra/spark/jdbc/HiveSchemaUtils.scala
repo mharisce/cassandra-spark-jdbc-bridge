@@ -1,6 +1,7 @@
 package com.inadco.cassandra.spark.jdbc
 
 import org.apache.spark.sql._
+import org.apache.spark.sql.types._
 import com.datastax.spark.connector.types.UUIDType
 /**
  * Util class to deal with hive schemas
