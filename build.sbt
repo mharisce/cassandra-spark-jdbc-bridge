@@ -1,7 +1,7 @@
 lazy val root = (project in file(".")).
   settings(
     name := "inadco-csjb",
-    version := "1.0",
+    version := "1.1",
     scalaVersion := "2.10.5",
     libraryDependencies += "com.typesafe" % "config" % "1.2.1",
 //    libraryDependencies += "org.apache.spark" %% "spark-core" % "1.2.1",
