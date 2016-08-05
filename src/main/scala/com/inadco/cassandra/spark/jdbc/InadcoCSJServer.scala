@@ -53,9 +53,11 @@ class InadcoCSJServer extends Logging{
 		
 	  //load all the properties files
 		val defaultConf = ConfigFactory.load()
-		val overrideFile = new File(System.getenv("INADCO_CSJ_HOME") + "/config/csjb-default.properties")
+		val overrideFile = new File(System.getenv("INADCO_CSJB_HOME") + "/config/csjb-default.properties")
 		if(overrideFile.exists()){
 			logInfo("Found override properties from: " + overrideFile.toString())
+		}else{
+		  logInfo("NOT Found override properties from: " + overrideFile.toString())
 		}
 		ConfigFactory.parseFile(overrideFile).withFallback(defaultConf)
 	}
@@ -68,8 +70,8 @@ class InadcoCSJServer extends Logging{
     sparkConf.set("spark.scheduler.mode", "FAIR")
 		sparkConf.set("spark.cores.max", appConfig.getString("spark.cores.max"))
 		sparkConf.set("spark.cassandra.connection.host",appConfig.getString("spark.cassandra.connection.host"))
-//    sparkConf.set("spark.cassandra.auth.username", appConfig.getString("spark.cassandra.auth.username"))
-//		sparkConf.set("spark.cassandra.auth.password", appConfig.getString("spark.cassandra.auth.password"))
+    sparkConf.set("spark.cassandra.auth.username", appConfig.getString("spark.cassandra.auth.username"))
+		sparkConf.set("spark.cassandra.auth.password", appConfig.getString("spark.cassandra.auth.password"))
 		sparkConf.set("spark.executor.memory", appConfig.getString("spark.executor.memory"))
 		
 		

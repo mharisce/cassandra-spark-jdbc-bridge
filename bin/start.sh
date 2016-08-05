@@ -42,8 +42,7 @@ function is_running {
     fi
   fi
 
- }
-  
+}
 
 #Chk to see if app is running
 is_running
@@ -63,9 +62,9 @@ fi
 
 mkdir -p $INADCO_CSJB_HOME/var/log
 if [[ -d $INADCO_CSJB_HOME/var/log ]]; then
-		echo "Creating log dir $INADCO_CSJB_HOME/var/log";
-        
+                echo "Creating log dir $INADCO_CSJB_HOME/var/log";
+
 fi
 
-$SPARK_HOME/bin/spark-submit --class com.inadco.cassandra.spark.jdbc.InadcoCSJServer --master spark://137.202.47.193:7077 $INADCO_CSJB_HOME/inadco-csjb-assembly-1.5.2.jar >>$INADCO_CSJB_HOME/var/log/log.out \
+$SPARK_HOME/bin/spark-submit --driver-memory 4g --class com.inadco.cassandra.spark.jdbc.InadcoCSJServer --master spark://10.240.0.18:7077 $INADCO_CSJB_HOME/inadco-csjb-assembly-1.5.2.jar >>$INADCO_CSJB_HOME/var/log/log.out \
 2>>$INADCO_CSJB_HOME/var/log/log.err & echo $! > $csjb_pid
