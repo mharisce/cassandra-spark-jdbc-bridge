@@ -2,16 +2,14 @@ package com.inadco.cassandra.spark.jdbc
 
 import com.datastax.spark.connector.CassandraRow
 import scala.collection.mutable._
-import org.apache.spark.Logging
 import java.sql.Timestamp
 import org.joda.time.DateTime
-import org.apache.spark.Logging
 
 /**
  * Util class to deal with Cassandra rows
  * @author hduong
  */
-class CassandraRowUtils extends Serializable with Logging{
+class CassandraRowUtils extends Serializable {
 	/**
 	 * Extract a value of a column from a Cassandra row based on its data type
 	 * Currently only support basic/primitive data types

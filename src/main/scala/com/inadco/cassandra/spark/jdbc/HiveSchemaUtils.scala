@@ -1,14 +1,17 @@
 package com.inadco.cassandra.spark.jdbc
 
-import org.apache.spark.Logging
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 import com.datastax.spark.connector.types.UUIDType
+import org.apache.log4j.Logger
+
 /**
  * Util class to deal with hive schemas
  * @author hduong
  */
-object HiveSchemaUtils extends Logging {
+object HiveSchemaUtils {
+  
+  private val logger = Logger.getLogger(getClass());
 	/**
 	 * Map a column in Cassandra to a column to be defined in schema RDD
 	 * Currently only support basic/primitive data types.
@@ -45,7 +48,7 @@ object HiveSchemaUtils extends Logging {
 			case _ => {
 //        throw new RuntimeException("Column " + colName + " has unsupported data type " + cassandraDataType)
         dataType = BinaryType
-        logError("Column " + colName + " has unsupported data type " + cassandraDataType)
+        logger.error("Column " + colName + " has unsupported data type " + cassandraDataType)
       }
 		}
     StructField(colMeta._1, dataType, true)
