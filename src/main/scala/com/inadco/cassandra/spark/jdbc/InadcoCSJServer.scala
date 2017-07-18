@@ -60,6 +60,7 @@ class InadcoCSJServer {
       logger.info("Found override properties from: " + overrideFile.toString())
     } else {
       logger.info("NOT Found override properties from: " + overrideFile.toString())
+      throw new RuntimeException("NOT Found override properties from: " + overrideFile.toString())
     }
     ConfigFactory.parseFile(overrideFile).withFallback(defaultConf)
   }

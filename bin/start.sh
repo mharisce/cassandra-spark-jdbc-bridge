@@ -1,5 +1,12 @@
-app_name=csjb
-csjb_pid=/tmp/inadco-csjb-server.pid
+#!/bin/bash
+
+SPARK_HOME=/opt/spark-2.1.1-bin-hadoop2.7/
+INADCO_CSJB_HOME=/opt/inadco-csjb-dist-2017-07-04/dist/
+SPARK_MASTER_HOST=10.189.168.221
+app_name=InadcoHiveThriftServer
+csjb_pid=$INADCO_CSJB_HOME/inadco-csjb-server.pid
+JAR_FILE=inadco-csjb-assembly-2.1.1.jar
+
 
 #Chk to see if app is running
 
@@ -60,11 +67,11 @@ if [[ -z "$INADCO_CSJB_HOME" ]]; then
         exit 1;
 fi
 
-mkdir -p $INADCO_CSJB_HOME/var/log
-if [[ -d $INADCO_CSJB_HOME/var/log ]]; then
-                echo "Creating log dir $INADCO_CSJB_HOME/var/log";
+mkdir -p $INADCO_CSJB_HOME/log
+if [[ -d $INADCO_CSJB_HOME/log ]]; then
+                echo "Creating log dir $INADCO_CSJB_HOME/log";
 
 fi
 
-$SPARK_HOME/bin/spark-submit --driver-memory 4g --class com.inadco.cassandra.spark.jdbc.InadcoCSJServer --master spark://10.240.0.18:7077 $INADCO_CSJB_HOME/inadco-csjb-assembly-1.5.2.jar >>$INADCO_CSJB_HOME/var/log/log.out \
-2>>$INADCO_CSJB_HOME/var/log/log.err & echo $! > $csjb_pid
+$SPARK_HOME/bin/spark-submit --driver-memory 4g --class com.inadco.cassandra.spark.jdbc.InadcoCSJServer --master spark://$SPARK_MASTER_HOST:7077 $INADCO_CSJB_HOME/$JAR_FILE >>$INADCO_CSJB_HOME/log/log.out \
+2>>$INADCO_CSJB_HOME/log/log.err & echo $! > $csjb_pid
